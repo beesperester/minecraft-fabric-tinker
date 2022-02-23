@@ -16,19 +16,19 @@ public class HungerEffect implements IEffect {
     public static float hungerDepletionRate = 24000f / 2f / 20f;
     public static float starvationRate = 24000f * 3f / 20f;
 
-    private float saturationTick = (float) Instant.now().toEpochMilli();
-    private float hungerTick = (float) Instant.now().toEpochMilli();
-    private float starvationTick = (float) Instant.now().toEpochMilli();
+    private long saturationTick;
+    private long hungerTick;
+    private long starvationTick;;
 
     public HungerEffect() {
-        saturationTick = (float) Instant.now().toEpochMilli();
+        saturationTick = Instant.now().toEpochMilli();
         hungerTick = saturationTick;
         starvationTick = saturationTick;
     }
 
     public void tick(PlayerEntity player) {
-        float currentTick = (float) Instant.now().toEpochMilli();
-        float deltaTime = (currentTick - saturationTick) / 1000f;
+        long currentTick = Instant.now().toEpochMilli();
+        long deltaTime = (currentTick - saturationTick) / 1000L;
 
         HungerManager hungerManager = player.getHungerManager();
 
@@ -40,7 +40,7 @@ public class HungerEffect implements IEffect {
         }
 
         // hunger
-        float hungerDeltaTime = (currentTick - hungerTick) / 1000f;
+        long hungerDeltaTime = (currentTick - hungerTick) / 1000L;
 
         if (hungerDeltaTime > hungerDepletionRate) {
             if (hungerManager.getSaturationLevel() == 0f) {
@@ -51,7 +51,7 @@ public class HungerEffect implements IEffect {
         }
 
         // starvation
-        float starvationDeltaTime = (currentTick - starvationTick) / 1000.0f;
+        long starvationDeltaTime = (currentTick - starvationTick) / 1000L;
         float minimumStarvationHealth = CallOfTheWildMod.CONFIG.allowDeathFromStarvation ? 0f : 0.5f;
 
         if (starvationDeltaTime > starvationRate) {

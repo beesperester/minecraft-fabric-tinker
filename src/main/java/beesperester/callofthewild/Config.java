@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,35 +23,45 @@ public class Config {
     public boolean allowExposureEffects = true;
     public boolean allowDeathFromExposure = false;
 
-    public BlockProperties[] blockProperties;
+    public List<BlockProperties> blockProperties;
 
     public Config() {
-        blockProperties = new BlockProperties[] {
+        BlockProperties[] defaultBlockProperties = {
                 new BlockProperties("block.minecraft.lantern", 50f),
                 new BlockProperties("block.minecraft.torch", 50f),
                 new BlockProperties("block.minecraft.campfire", 200f)
         };
+
+        blockProperties = Arrays.asList(defaultBlockProperties);
     }
 
-    public static void attemptLoadConfig() {
+    public static Config attemptLoadConfig() {
         Path configFilePath = FabricLoader.getInstance().getConfigDir().resolve("call_of_the_wild_config.json");
         File configFile = configFilePath.toFile();
 
         if (configFile.exists()) {
             try {
                 Config config = Config.loadConfigFile(configFile);
-                CallOfTheWildMod.CONFIG = config;
                 Config.writeConfigFile(configFile, config);
+
+                return config;
             } catch (IOException ex) {
                 CallOfTheWildMod.LOGGER
                         .error("Something went wrong while loading the config file, using default config file");
+
+                return new Config();
             }
         } else {
             try {
-                Config.writeConfigFile(configFile, new Config());
+                Config config = new Config();
+                Config.writeConfigFile(configFile, config);
+
+                return config;
             } catch (IOException ex) {
                 CallOfTheWildMod.LOGGER.error(
                         "Something went wrong while creating a default config. Please report this to the mod author");
+
+                return new Config();
             }
         }
     }

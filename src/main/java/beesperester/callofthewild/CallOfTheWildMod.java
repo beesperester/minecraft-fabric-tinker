@@ -16,7 +16,7 @@ import beesperester.callofthewild.effects.HungerEffect;
 
 public class CallOfTheWildMod implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("modid");
-    public static Config CONFIG = new Config();
+    public static Config CONFIG = Config.attemptLoadConfig();
 
     public ClientPlayerEntity player;
     public HungerEffect hungerEffect;

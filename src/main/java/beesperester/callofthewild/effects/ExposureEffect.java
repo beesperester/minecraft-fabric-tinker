@@ -3,6 +3,7 @@ package beesperester.callofthewild.effects;
 import java.time.Instant;
 
 import beesperester.callofthewild.CallOfTheWildMod;
+import beesperester.callofthewild.classes.BlockProperties;
 import beesperester.callofthewild.classes.Rectangle;
 import beesperester.callofthewild.utilities.MathUtilities;
 import net.minecraft.block.Block;
@@ -27,19 +28,19 @@ public class ExposureEffect implements IEffect {
     public float bodyTemperature;
     public float environmentTemperature;
 
-    public float temperatureTick;
-    public float damageTick;
+    public long temperatureTick;
+    public long damageTick;
 
     public ExposureEffect() {
-        temperatureTick = (float) Instant.now().toEpochMilli();
+        temperatureTick = Instant.now().toEpochMilli();
         bodyTemperature = bodyDefaultTemperature;
     }
 
     public void tick(PlayerEntity player) {
-        float currentTick = (float) Instant.now().toEpochMilli();
+        long currentTick = Instant.now().toEpochMilli();
 
         // temperature
-        float temperatureDeltaTime = (currentTick - temperatureTick) / 1000f;
+        long temperatureDeltaTime = (currentTick - temperatureTick) / 1000L;
 
         if (temperatureDeltaTime > updateTemperatureRate) {
             environmentTemperature = getEnvironmentTemperature(player) + getBlockTemperature(player, 8);
@@ -57,7 +58,7 @@ public class ExposureEffect implements IEffect {
         }
 
         // damage
-        float damageDeltaTime = (currentTick - temperatureTick) / 1000f;
+        long damageDeltaTime = (currentTick - damageTick) / 1000L;
         float minHealth = CallOfTheWildMod.CONFIG.allowDeathFromExposure ? 0f : 0.5f;
 
         if (damageDeltaTime > damageRate) {
@@ -124,7 +125,8 @@ public class ExposureEffect implements IEffect {
         environmentTemperature = MathUtilities.lerp(bias, biomeNightTemperature, biomeDayTemperature);
 
         if (player.isSubmergedInWater()) {
-            // water temperature does not fall below 4 degrees celsius
+            // water temperature does not fall below 4 degrees celsius but will cool the
+            // environment
             environmentTemperature = Math.max(environmentTemperature * 0.5f, 4f);
         }
 
@@ -145,13 +147,13 @@ public class ExposureEffect implements IEffect {
 
                 float bias = Math.max(Math.min(1f / (float) Math.pow(distance, 2), 1f), 0f);
 
-                // if (translationKey.contains("campfire")) {
-                // blockTemperature += bias * campFireTemperature;
-                // } else if (translationKey.contains("torch")) {
-                // blockTemperature += bias * torchTemperature;
-                // } else if (translationKey.contains("lantern")) {
-                // blockTemperature += bias * lanternTemperature;
-                // }
+                for (BlockProperties blockProperties : CallOfTheWildMod.CONFIG.blockProperties) {
+                    if (translationKey.equals(blockProperties.translationKey)) {
+                        blockTemperature += bias * blockProperties.temperature;
+
+                        break;
+                    }
+                }
             }
         }
 
