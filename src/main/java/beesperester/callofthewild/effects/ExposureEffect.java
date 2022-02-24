@@ -3,73 +3,97 @@ package beesperester.callofthewild.effects;
 import java.time.Instant;
 
 import beesperester.callofthewild.CallOfTheWildMod;
-import beesperester.callofthewild.classes.BlockProperties;
+import beesperester.callofthewild.classes.TemperatureProperty;
 import beesperester.callofthewild.classes.Rectangle;
 import beesperester.callofthewild.utilities.MathUtilities;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 public class ExposureEffect implements IEffect {
-    public static float updateTemperatureRate = 4f;
-    public static float damageRate = 4f;
+    public static float updateTemperatureRate = 1f;
+    public static float updateDamageDefaultRate = 8f;
 
     public static float biomeDayMaxTemperature = 20f;
     public static float biomeDayMinTemperature = -20f;
     public static float biomeNightMaxTemperature = 10f;
     public static float biomeNightMinTemperature = -40f;
-    public static float bodyDefaultTemperature = 37f;
-    public static float bodyMinTemperature = 35f;
-    public static float bodyMaxTemperature = 43f;
+    public static float bodyTemperatureHarmlesssDeviation = 5f;
+    public static float bodyTemperatureDangerousDeviation = 15f;
+    public static float bodyDefaultTemperature = 36.5f;
+    public static float environmentDefaultTemperature = 20.0f;
+    public static float environmentTemperatureEffectStrength = 0.75f;
+
+    public long temperatureTick;
+    public float updateDamageRate;
+    public long damageTick;
 
     public float bodyTemperature;
     public float environmentTemperature;
 
-    public long temperatureTick;
-    public long damageTick;
-
     public ExposureEffect() {
         temperatureTick = Instant.now().toEpochMilli();
+        damageTick = temperatureTick;
+        updateDamageRate = updateDamageDefaultRate;
         bodyTemperature = bodyDefaultTemperature;
+        environmentTemperature = environmentDefaultTemperature;
     }
 
     public void tick(PlayerEntity player) {
         long currentTick = Instant.now().toEpochMilli();
 
+        float lowerBounds = bodyDefaultTemperature - bodyTemperatureHarmlesssDeviation;
+        float upperBounds = bodyDefaultTemperature + bodyTemperatureHarmlesssDeviation;
+
         // temperature
         long temperatureDeltaTime = (currentTick - temperatureTick) / 1000L;
 
         if (temperatureDeltaTime > updateTemperatureRate) {
-            environmentTemperature = getEnvironmentTemperature(player) + getBlockTemperature(player, 8);
+            environmentTemperature = getEnvironmentTemperature(player);
+            bodyTemperature = getBodyTemperature(player, environmentTemperature);
 
-            float deltaTemperature = (environmentTemperature - bodyTemperature);
+            float bias = 0f;
 
-            float temperatureRate = deltaTemperature / bodyDefaultTemperature * 0.5f;
+            if (bodyTemperature < lowerBounds || bodyTemperature > upperBounds) {
+                float deltaTemperature = Math.abs(bodyDefaultTemperature - bodyTemperature);
 
-            float acclimatizeDelta = (bodyDefaultTemperature - bodyTemperature);
+                float deviationBias = MathUtilities.clamp(
+                        (deltaTemperature - bodyTemperatureHarmlesssDeviation)
+                                / (bodyTemperatureDangerousDeviation
+                                        - bodyTemperatureHarmlesssDeviation),
+                        0f,
+                        1f);
 
-            bodyTemperature += MathUtilities.clamp(acclimatizeDelta, -2f, 1f)
-                    + temperatureRate;
+                // CallOfTheWildMod.LOGGER.info(String.format("deviationBias %.2f",
+                // deviationBias));
+
+                bias = (float) Math.pow(deviationBias, 2.0);
+            }
+
+            updateDamageRate = MathUtilities.lerp(bias, updateDamageDefaultRate, 1f);
 
             temperatureTick = currentTick;
         }
+
+        CallOfTheWildMod.LOGGER.info(String.format("updateDamageRate %.2f, body %.2f, lower %.2f",
+                updateDamageRate, bodyTemperature, lowerBounds));
 
         // damage
         long damageDeltaTime = (currentTick - damageTick) / 1000L;
         float minHealth = CallOfTheWildMod.CONFIG.allowDeathFromExposure ? 0f : 0.5f;
 
-        if (damageDeltaTime > damageRate) {
-            if (bodyTemperature < bodyMinTemperature) {
-
+        if (damageDeltaTime > updateDamageRate) {
+            if (bodyTemperature < lowerBounds) {
                 player.setHealth(Math.max(player.getHealth() - 1.0f, minHealth));
 
                 player.sendMessage(Text.of("You are suffering from hypothermia"), false);
 
                 player.animateDamage();
-            } else if (bodyTemperature > bodyMaxTemperature) {
+            } else if (bodyTemperature > upperBounds) {
                 player.setHealth(Math.max(player.getHealth() - 1.0f, minHealth));
 
                 player.sendMessage(Text.of("You are suffering from hyperthermia"), false);
@@ -106,6 +130,28 @@ public class ExposureEffect implements IEffect {
         return new Rectangle(x, y, 64f, 32f);
     }
 
+    public static float getBodyTemperature(PlayerEntity player, float environmentTemperature) {
+        float armorTemperature = getArmorTemperatureAmount(player);
+        float deltaTemperature = Math.max(
+                Math.abs(environmentTemperature - bodyDefaultTemperature)
+                        - armorTemperature,
+                0f);
+
+        // CallOfTheWildMod.LOGGER.info(String.format("env %.2f, armor %.2f, delta
+        // %.2f", environmentTemperature,
+        // armorTemperature, deltaTemperature));
+
+        float bias = MathUtilities.clamp(
+                deltaTemperature / bodyDefaultTemperature * environmentTemperatureEffectStrength, 0f,
+                1f);
+
+        bias = (float) Math.pow(bias, 2.0);
+
+        float bodyTemperature = MathUtilities.lerp(bias, bodyDefaultTemperature, environmentTemperature);
+
+        return bodyTemperature;
+    }
+
     public static float getEnvironmentTemperature(PlayerEntity player) {
         float environmentTemperature = 0f;
         float biomeTemperature = player.world.getBiome(player.getBlockPos()).getTemperature();
@@ -130,12 +176,14 @@ public class ExposureEffect implements IEffect {
             environmentTemperature = Math.max(environmentTemperature * 0.5f, 4f);
         }
 
+        environmentTemperature += getBlockTemperatureAmount(player, 8);
+
         return environmentTemperature;
     }
 
-    public static float getBlockTemperature(PlayerEntity player, int radius) {
+    public static float getBlockTemperatureAmount(PlayerEntity player, int radius) {
         BlockPos playerBlockPos = player.getBlockPos();
-        float blockTemperature = 0f;
+        float temperatureChangeAmount = 0f;
 
         for (BlockPos blockPos : BlockPos.iterateOutwards(playerBlockPos, radius, radius, radius)) {
             double distance = Math.sqrt(blockPos.getSquaredDistance(playerBlockPos));
@@ -145,11 +193,11 @@ public class ExposureEffect implements IEffect {
 
                 String translationKey = block.getTranslationKey();
 
-                float bias = Math.max(Math.min(1f / (float) Math.pow(distance, 2), 1f), 0f);
+                float bias = (float) Math.max(Math.min(1.0 / Math.pow(distance, 2), 1.0), 0.0);
 
-                for (BlockProperties blockProperties : CallOfTheWildMod.CONFIG.blockProperties) {
+                for (TemperatureProperty blockProperties : CallOfTheWildMod.CONFIG.blockProperties) {
                     if (translationKey.equals(blockProperties.translationKey)) {
-                        blockTemperature += bias * blockProperties.temperature;
+                        temperatureChangeAmount += bias * blockProperties.value;
 
                         break;
                     }
@@ -157,6 +205,24 @@ public class ExposureEffect implements IEffect {
             }
         }
 
-        return blockTemperature;
+        return temperatureChangeAmount;
+    }
+
+    public static float getArmorTemperatureAmount(PlayerEntity player) {
+        float temperatureChangeAmount = 0f;
+
+        for (ItemStack itemStack : player.getArmorItems()) {
+            String translationKey = itemStack.getTranslationKey();
+
+            for (TemperatureProperty itemProperties : CallOfTheWildMod.CONFIG.itemProperties) {
+                if (translationKey.equals(itemProperties.translationKey)) {
+                    temperatureChangeAmount += itemProperties.value;
+
+                    break;
+                }
+            }
+        }
+
+        return temperatureChangeAmount;
     }
 }

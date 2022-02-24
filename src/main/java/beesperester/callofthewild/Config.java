@@ -13,7 +13,7 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import beesperester.callofthewild.classes.BlockProperties;
+import beesperester.callofthewild.classes.TemperatureProperty;
 
 public class Config {
 
@@ -23,16 +23,24 @@ public class Config {
     public boolean allowExposureEffects = true;
     public boolean allowDeathFromExposure = false;
 
-    public List<BlockProperties> blockProperties;
+    public List<TemperatureProperty> blockProperties;
+
+    public List<TemperatureProperty> itemProperties;
 
     public Config() {
-        BlockProperties[] defaultBlockProperties = {
-                new BlockProperties("block.minecraft.lantern", 50f),
-                new BlockProperties("block.minecraft.torch", 50f),
-                new BlockProperties("block.minecraft.campfire", 200f)
+        TemperatureProperty[] defaultBlockProperties = {
+                new TemperatureProperty("block.minecraft.lantern", 50f),
+                new TemperatureProperty("block.minecraft.torch", 50f),
+                new TemperatureProperty("block.minecraft.campfire", 100f)
+        };
+
+        TemperatureProperty[] defaultItemProperties = {
+                new TemperatureProperty("item.minecraft.leather_chestplate", 5f),
         };
 
         blockProperties = Arrays.asList(defaultBlockProperties);
+
+        itemProperties = Arrays.asList(defaultItemProperties);
     }
 
     public static Config attemptLoadConfig() {
