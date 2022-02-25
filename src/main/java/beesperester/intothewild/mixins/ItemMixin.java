@@ -1,4 +1,4 @@
-package beesperester.callofthewild.mixins;
+package beesperester.intothewild.mixins;
 
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.Item;
@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import beesperester.callofthewild.CallOfTheWildMod;
-import beesperester.callofthewild.classes.EntityTemperature;
+import beesperester.intothewild.IntoTheWildMod;
+import beesperester.intothewild.classes.EntityTemperature;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +25,7 @@ public class ItemMixin {
             TooltipContext context, CallbackInfo ci) {
         String translationKey = itemStack.getTranslationKey();
 
-        for (EntityTemperature entityTemperature : CallOfTheWildMod.CONFIG.entityProperties.stream()
+        for (EntityTemperature entityTemperature : IntoTheWildMod.CONFIG.entityProperties.stream()
                 .filter(EntityTemperature.armorFilter).collect(Collectors.toList())) {
             if (entityTemperature.matches(translationKey)) {
                 tooltip.add(

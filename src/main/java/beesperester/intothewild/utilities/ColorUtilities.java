@@ -1,6 +1,6 @@
-package beesperester.callofthewild.utilities;
+package beesperester.intothewild.utilities;
 
-import beesperester.callofthewild.classes.Color;
+import beesperester.intothewild.classes.Color;
 
 public class ColorUtilities {
     public static Color darkRed = new Color("§4", "\u00A74", 11141120, "AA0000");

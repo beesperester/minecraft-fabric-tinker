@@ -1,4 +1,4 @@
-package beesperester.callofthewild.utilities;
+package beesperester.intothewild.utilities;
 
 public class MathUtilities {
     public static float fitRange(float value, float srcMin, float srcMax, float destMin, float destMax) {

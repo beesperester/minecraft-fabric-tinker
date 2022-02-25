@@ -1,15 +1,15 @@
-package beesperester.callofthewild.effects;
+package beesperester.intothewild.effects;
 
 import java.time.Instant;
 
-import beesperester.callofthewild.classes.Rectangle;
+import beesperester.intothewild.classes.Rectangle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 
-import beesperester.callofthewild.CallOfTheWildMod;
+import beesperester.intothewild.IntoTheWildMod;
 
 public class HungerEffect implements IEffect {
     public static float saturationDepletionRate = 24000f / 4f / 20f;
@@ -55,7 +55,7 @@ public class HungerEffect implements IEffect {
 
         // starvation
         long starvationDeltaTime = (currentTick - starvationTick) / 1000L;
-        float minimumStarvationHealth = CallOfTheWildMod.CONFIG.allowDeathFromStarvation ? 0f : 0.5f;
+        float minimumStarvationHealth = IntoTheWildMod.CONFIG.allowDeathFromStarvation ? 0f : 0.5f;
 
         if (starvationDeltaTime > starvationRate) {
             if (hungerManager.getFoodLevel() == 0) {

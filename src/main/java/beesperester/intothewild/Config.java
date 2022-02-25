@@ -1,4 +1,4 @@
-package beesperester.callofthewild;
+package beesperester.intothewild;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -13,8 +13,8 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import beesperester.callofthewild.classes.BiomeTemperature;
-import beesperester.callofthewild.classes.EntityTemperature;
+import beesperester.intothewild.classes.BiomeTemperature;
+import beesperester.intothewild.classes.EntityTemperature;
 
 public class Config {
 
@@ -69,7 +69,7 @@ public class Config {
     }
 
     public static Config attemptLoadConfig() {
-        Path configFilePath = FabricLoader.getInstance().getConfigDir().resolve("call_of_the_wild_config.json");
+        Path configFilePath = FabricLoader.getInstance().getConfigDir().resolve("into_the_wild_config.json");
         File configFile = configFilePath.toFile();
 
         if (configFile.exists()) {
@@ -79,7 +79,7 @@ public class Config {
 
                 return config;
             } catch (IOException ex) {
-                CallOfTheWildMod.LOGGER
+                IntoTheWildMod.LOGGER
                         .error("Something went wrong while loading the config file, using default config file");
 
                 return new Config();
@@ -91,7 +91,7 @@ public class Config {
 
                 return config;
             } catch (IOException ex) {
-                CallOfTheWildMod.LOGGER.error(
+                IntoTheWildMod.LOGGER.error(
                         "Something went wrong while creating a default config. Please report this to the mod author");
 
                 return new Config();

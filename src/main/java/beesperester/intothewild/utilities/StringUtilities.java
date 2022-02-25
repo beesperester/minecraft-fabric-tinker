@@ -1,4 +1,4 @@
-package beesperester.callofthewild.utilities;
+package beesperester.intothewild.utilities;
 
 public class StringUtilities {
     public static String getRegexFromGlob(String glob) {

@@ -1,6 +1,6 @@
-package beesperester.callofthewild.effects;
+package beesperester.intothewild.effects;
 
-import beesperester.callofthewild.classes.Rectangle;
+import beesperester.intothewild.classes.Rectangle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;

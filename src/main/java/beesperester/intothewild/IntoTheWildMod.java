@@ -1,4 +1,4 @@
-package beesperester.callofthewild;
+package beesperester.intothewild;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,12 +10,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
-import beesperester.callofthewild.classes.Rectangle;
-import beesperester.callofthewild.effects.ExposureEffect;
-import beesperester.callofthewild.effects.HungerEffect;
+import beesperester.intothewild.classes.Rectangle;
+import beesperester.intothewild.effects.ExposureEffect;
+import beesperester.intothewild.effects.HungerEffect;
 
-public class CallOfTheWildMod implements ModInitializer {
-    public static final Logger LOGGER = LoggerFactory.getLogger("modid");
+public class IntoTheWildMod implements ModInitializer {
+    public static final Logger LOGGER = LoggerFactory.getLogger("intothewild");
     public static Config CONFIG = Config.attemptLoadConfig();
 
     public ClientPlayerEntity player;
