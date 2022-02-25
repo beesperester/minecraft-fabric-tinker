@@ -3,6 +3,7 @@ package beesperester.callofthewild.effects;
 import java.time.Instant;
 
 import beesperester.callofthewild.classes.Rectangle;
+import beesperester.callofthewild.utilities.ColorUtilities;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.HungerManager;
@@ -50,6 +51,9 @@ public class HungerEffect implements IEffect {
             hungerTick = currentTick;
         }
 
+        if (player.isCreative())
+            return;
+
         // starvation
         long starvationDeltaTime = (currentTick - starvationTick) / 1000L;
         float minimumStarvationHealth = CallOfTheWildMod.CONFIG.allowDeathFromStarvation ? 0f : 0.5f;
@@ -71,6 +75,23 @@ public class HungerEffect implements IEffect {
     }
 
     public Rectangle render(MatrixStack matrixStack, float tickDelta, MinecraftClient client, float x, float y) {
-        return new Rectangle(0f, 0f, 0f, 0f);
+        return new Rectangle(x, y, 0f, 0f);
+        // float height = 0f;
+
+        // long currentTick = Instant.now().toEpochMilli();
+        // long saturationDelta = (currentTick - saturationTick) / 1000L;
+
+        // client.textRenderer.drawWithShadow(
+        // matrixStack,
+        // String.format(
+        // "Saturation: %.1f",
+        // saturationDepletionRate - (float) saturationDelta),
+        // x,
+        // y + height,
+        // ColorUtilities.gold.decimalCode);
+
+        // height += 16f;
+
+        // return new Rectangle(0f, 0f, 64f, height);
     }
 }
