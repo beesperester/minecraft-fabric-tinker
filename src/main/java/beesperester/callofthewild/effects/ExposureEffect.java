@@ -2,7 +2,6 @@ package beesperester.callofthewild.effects;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import beesperester.callofthewild.CallOfTheWildMod;

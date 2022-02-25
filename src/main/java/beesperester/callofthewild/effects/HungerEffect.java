@@ -3,7 +3,6 @@ package beesperester.callofthewild.effects;
 import java.time.Instant;
 
 import beesperester.callofthewild.classes.Rectangle;
-import beesperester.callofthewild.utilities.ColorUtilities;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.HungerManager;
