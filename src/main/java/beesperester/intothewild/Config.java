@@ -21,8 +21,16 @@ public class Config {
     public boolean allowHungerEffects = true;
     public boolean allowDeathFromStarvation = false;
 
+    public float saturationDepletionRate = (20f * 60f) / 4f;
+    public float hungerDepletionRate = (20f * 60f) / 2f;
+    public float starvationRate = (20f * 60f) * 3f;
+
     public boolean allowExposureEffects = true;
     public boolean allowDeathFromExposure = false;
+
+    public float bodyTemperatureHarmlesssDeviation = 10f;
+    public float bodyTemperatureHarmfullDeviation = 30f;
+    public float bodyDefaultTemperature = 36.5f;
 
     public List<EntityTemperature> entityProperties;
     public List<BiomeTemperature> biomeTemperatures;
@@ -30,7 +38,7 @@ public class Config {
     public Config() {
         EntityTemperature[] defaultEntityProperties = {
                 // blocks
-                new EntityTemperature("block.minecraft.lantern", 50f),
+                new EntityTemperature("block.minecraft.lantern", 25f),
                 new EntityTemperature("block.minecraft.*torch", 50f),
                 new EntityTemperature("block.minecraft.campfire", 100f),
                 new EntityTemperature("block.minecraft.lava", 200f),
@@ -79,7 +87,7 @@ public class Config {
 
                 return config;
             } catch (IOException ex) {
-                IntoTheWildMod.LOGGER
+                IntoTheWild.LOGGER
                         .error("Something went wrong while loading the config file, using default config file");
 
                 return new Config();
@@ -91,7 +99,7 @@ public class Config {
 
                 return config;
             } catch (IOException ex) {
-                IntoTheWildMod.LOGGER.error(
+                IntoTheWild.LOGGER.error(
                         "Something went wrong while creating a default config. Please report this to the mod author");
 
                 return new Config();

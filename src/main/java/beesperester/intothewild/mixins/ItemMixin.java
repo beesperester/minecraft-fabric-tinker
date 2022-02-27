@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import beesperester.intothewild.IntoTheWildMod;
+import beesperester.intothewild.IntoTheWild;
 import beesperester.intothewild.classes.EntityTemperature;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class ItemMixin {
             TooltipContext context, CallbackInfo ci) {
         String translationKey = itemStack.getTranslationKey();
 
-        for (EntityTemperature entityTemperature : IntoTheWildMod.CONFIG.entityProperties.stream()
+        for (EntityTemperature entityTemperature : IntoTheWild.CONFIG.entityProperties.stream()
                 .filter(EntityTemperature.armorFilter).collect(Collectors.toList())) {
             if (entityTemperature.matches(translationKey)) {
                 tooltip.add(

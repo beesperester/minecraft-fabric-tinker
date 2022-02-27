@@ -12,15 +12,18 @@
     "sources": "https://github.com/FabricMC/fabric-example-mod"
   },
   "license": "CC0-1.0",
-  "icon": "assets/IntoTheWild/icon.png",
+  "icon": "assets/intothewild/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "beesperester.intothewild.IntoTheWildMod"
+      "beesperester.intothewild.IntoTheWild"
+    ],
+    "client": [
+      "beesperester.intothewild.IntoTheWildClient"
     ]
   },
   "mixins": [
-    "IntoTheWild.mixins.json"
+    "intothewild.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.12.12",

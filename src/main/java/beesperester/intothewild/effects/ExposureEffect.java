@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import beesperester.intothewild.IntoTheWildMod;
+import beesperester.intothewild.IntoTheWild;
 import beesperester.intothewild.classes.BiomeTemperature;
 import beesperester.intothewild.classes.EntityTemperature;
 import beesperester.intothewild.classes.Rectangle;
@@ -19,12 +19,8 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.util.math.BlockPos;
 
 public class ExposureEffect implements IEffect {
-    public static float updateTemperatureRate = 1f;
+    public static float updateTemperatureRate = 10f;
     public static float updateDamageDefaultRate = 60f;
-
-    public static float bodyTemperatureHarmlesssDeviation = 10f;
-    public static float bodyTemperatureDangerousDeviation = 30f;
-    public static float bodyDefaultTemperature = 36.5f;
 
     public static float environmentDefaultTemperature = 20.0f;
     public static float environmentTemperatureEffectStrength = 1f;
@@ -41,7 +37,7 @@ public class ExposureEffect implements IEffect {
         temperatureTick = Instant.now().toEpochMilli();
         damageTick = temperatureTick;
         updateDamageRate = updateDamageDefaultRate;
-        bodyTemperature = bodyDefaultTemperature;
+        bodyTemperature = IntoTheWild.CONFIG.bodyDefaultTemperature;
         environmentTemperature = environmentDefaultTemperature;
         armorTemperature = 0f;
     }
@@ -49,8 +45,8 @@ public class ExposureEffect implements IEffect {
     public void tick(PlayerEntity player) {
         long currentTick = Instant.now().toEpochMilli();
 
-        float lowerBounds = bodyDefaultTemperature - 1.5f;
-        float upperBounds = bodyDefaultTemperature + 1.5f;
+        float lowerBounds = IntoTheWild.CONFIG.bodyDefaultTemperature - 1.5f;
+        float upperBounds = IntoTheWild.CONFIG.bodyDefaultTemperature + 1.5f;
 
         // temperature
         long temperatureDeltaTime = (currentTick - temperatureTick) / 1000L;
@@ -62,7 +58,8 @@ public class ExposureEffect implements IEffect {
 
             float deltaTemperature = MathUtilities.distance(environmentTemperature, bodyTemperature);
 
-            float bias = MathUtilities.clamp(deltaTemperature / bodyTemperatureDangerousDeviation, 0f, 1f);
+            float bias = MathUtilities.clamp(deltaTemperature / IntoTheWild.CONFIG.bodyTemperatureHarmfullDeviation, 0f,
+                    1f);
 
             bias = MathUtilities.easeInCubic(bias);
 
@@ -76,19 +73,23 @@ public class ExposureEffect implements IEffect {
 
         // damage
         long damageDeltaTime = (currentTick - damageTick) / 1000L;
-        float minHealth = IntoTheWildMod.CONFIG.allowDeathFromExposure ? 0f : 0.5f;
+        float minHealth = IntoTheWild.CONFIG.allowDeathFromExposure ? 0f : 0.5f;
 
         if (damageDeltaTime > updateDamageRate) {
             if (bodyTemperature < lowerBounds) {
                 player.setHealth(Math.max(player.getHealth() - 1.0f, minHealth));
 
-                player.sendMessage(new LiteralText("§bYou are suffering from hypothermia"), false);
+                player.sendMessage(
+                        new LiteralText(ColorUtilities.aqua.chatCode).append("You are suffering from hypothermia"),
+                        false);
 
                 player.animateDamage();
             } else if (bodyTemperature > upperBounds) {
                 player.setHealth(Math.max(player.getHealth() - 1.0f, minHealth));
 
-                player.sendMessage(new LiteralText("§cYou are suffering from hyperthermia"), false);
+                player.sendMessage(
+                        new LiteralText(ColorUtilities.red.chatCode).append("You are suffering from hyperthermia"),
+                        false);
 
                 player.animateDamage();
             }
@@ -137,11 +138,11 @@ public class ExposureEffect implements IEffect {
     }
 
     public static float getBodyTemperature(PlayerEntity player, float environmentTemperature, float armorTemperature) {
-        float delta = Math.max(MathUtilities.distance(environmentTemperature, bodyDefaultTemperature)
-                - bodyTemperatureHarmlesssDeviation - armorTemperature, 0f);
+        float delta = Math.max(MathUtilities.distance(environmentTemperature, IntoTheWild.CONFIG.bodyDefaultTemperature)
+                - IntoTheWild.CONFIG.bodyTemperatureHarmlesssDeviation - armorTemperature, 0f);
 
         float bias = MathUtilities.clamp(
-                delta / bodyTemperatureDangerousDeviation,
+                delta / IntoTheWild.CONFIG.bodyTemperatureHarmfullDeviation,
                 0f,
                 1f);
 
@@ -149,15 +150,16 @@ public class ExposureEffect implements IEffect {
 
         bias *= environmentTemperatureEffectStrength;
 
-        IntoTheWildMod.LOGGER
-                .info(String.format("env %.2f, armor %.2f, delta %.2f, bias %.2f", environmentTemperature,
-                        armorTemperature, delta, bias));
+        // IntoTheWild.LOGGER
+        // .info(String.format("env %.2f, armor %.2f, delta %.2f, bias %.2f",
+        // environmentTemperature,
+        // armorTemperature, delta, bias));
 
-        float exposureEffect = (environmentTemperature < bodyDefaultTemperature)
-                ? -bodyTemperatureDangerousDeviation
-                : bodyTemperatureDangerousDeviation;
+        float exposureEffect = (environmentTemperature < IntoTheWild.CONFIG.bodyDefaultTemperature)
+                ? -IntoTheWild.CONFIG.bodyTemperatureHarmfullDeviation
+                : IntoTheWild.CONFIG.bodyTemperatureHarmfullDeviation;
 
-        float bodyTemperature = bodyDefaultTemperature + (bias * exposureEffect);
+        float bodyTemperature = IntoTheWild.CONFIG.bodyDefaultTemperature + (bias * exposureEffect);
 
         return bodyTemperature;
     }
@@ -166,14 +168,14 @@ public class ExposureEffect implements IEffect {
         float environmentTemperature = 0f;
         float biomeTemperatureCode = player.world.getBiome(player.getBlockPos()).getTemperature();
 
-        Collections.sort(IntoTheWildMod.CONFIG.biomeTemperatures, (a, b) -> {
+        Collections.sort(IntoTheWild.CONFIG.biomeTemperatures, (a, b) -> {
             return (int) (a.code - b.code);
         });
 
         float biomeDayTemperature = 0f;
         float biomeNightTemperature = 0f;
 
-        for (BiomeTemperature biomeTemperature : IntoTheWildMod.CONFIG.biomeTemperatures) {
+        for (BiomeTemperature biomeTemperature : IntoTheWild.CONFIG.biomeTemperatures) {
             if (biomeTemperatureCode <= biomeTemperature.code) {
                 biomeDayTemperature = biomeTemperature.day;
                 biomeNightTemperature = biomeTemperature.night;
@@ -182,9 +184,9 @@ public class ExposureEffect implements IEffect {
             }
         }
 
-        IntoTheWildMod.LOGGER
-                .info(String.format("biome %.2f, day %.2f, night %.2f", biomeTemperatureCode,
-                        biomeDayTemperature, biomeNightTemperature));
+        // IntoTheWild.LOGGER
+        // .info(String.format("biome %.2f, day %.2f, night %.2f", biomeTemperatureCode,
+        // biomeDayTemperature, biomeNightTemperature));
 
         float bias = (float) (Math.sin(Math.toRadians(((player.world.getTimeOfDay() / 24000f) * 360f))) * 0.5f) + 0.5f;
 
@@ -222,9 +224,9 @@ public class ExposureEffect implements IEffect {
 
                 String translationKey = block.getTranslationKey();
 
-                float bias = (float) Math.max(Math.min(1.0 / Math.pow(distance, 2), 1.0), 0.0);
+                float bias = MathUtilities.easeInCirc(1f - ((float) distance / radius));
 
-                for (EntityTemperature blockProperties : IntoTheWildMod.CONFIG.entityProperties) {
+                for (EntityTemperature blockProperties : IntoTheWild.CONFIG.entityProperties) {
                     if (blockProperties.matches(translationKey)) {
                         temperatureChangeAmount += bias * blockProperties.value;
 
@@ -243,7 +245,7 @@ public class ExposureEffect implements IEffect {
         for (ItemStack itemStack : player.getArmorItems()) {
             String translationKey = itemStack.getTranslationKey();
 
-            for (EntityTemperature entityTemperature : IntoTheWildMod.CONFIG.entityProperties.stream()
+            for (EntityTemperature entityTemperature : IntoTheWild.CONFIG.entityProperties.stream()
                     .filter(EntityTemperature.armorFilter)
                     .collect(Collectors.toList())) {
                 if (entityTemperature.matches(translationKey)) {
@@ -264,7 +266,7 @@ public class ExposureEffect implements IEffect {
             String translationKey = itemStack.getTranslationKey();
 
             // adds block temperature properties
-            for (EntityTemperature blockProperties : IntoTheWildMod.CONFIG.entityProperties.stream()
+            for (EntityTemperature blockProperties : IntoTheWild.CONFIG.entityProperties.stream()
                     .filter(EntityTemperature.blockFilter).collect(Collectors.toList())) {
                 if (blockProperties.matches(translationKey)) {
                     temperatureChangeAmount += blockProperties.value;
@@ -274,7 +276,7 @@ public class ExposureEffect implements IEffect {
             }
 
             // adds item temperature properties
-            for (EntityTemperature itemProperties : IntoTheWildMod.CONFIG.entityProperties.stream()
+            for (EntityTemperature itemProperties : IntoTheWild.CONFIG.entityProperties.stream()
                     .filter(EntityTemperature.itemFilter)
                     .filter(EntityTemperature.notArmorFilter)
                     .collect(Collectors.toList())) {
